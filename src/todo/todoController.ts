@@ -11,7 +11,7 @@ class Todo {
         this.io.on("connection", (socket: Socket) => {
             console.log("New client connected:", socket.id)
             socket.on("addTodo", (data) => this.handleAddTodo(socket, data))
-            socket.on("getTodo", (data) => this.handleGetTodo(socket))
+            socket.on("getTodos", (data) => this.handleGetTodo(socket))
             socket.on("deleteTodo", (data) => this.handleDeleteTodo(socket, data))
             socket.on("updateTodoStatus", (data) => this.handleUpdateTodo(socket, data))
         })

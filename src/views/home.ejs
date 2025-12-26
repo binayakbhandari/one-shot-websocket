@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+</head>
+
+<body>
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-16">
+        <div class="px-4 py-2">
+            <h1 class="text-gray-800 font-bold text-2xl uppercase">To-Do List</h1>
+        </div>
+        <form class="w-full max-w-sm mx-auto px-4 py-2" onsubmit="addTodo()">
+            <div class="flex items-center border-b-2 border-teal-500 py-2">
+                <input
+                    class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
+                    type="text" placeholder="Add a task">
+                <button
+                    class="flex-shrink-0 bg-teal-500 hover:bg-teal-700 border-teal-500 hover:border-teal-700 text-sm border-4 text-white py-1 px-2 rounded"
+                    type="submit">
+                    Add
+                </button>
+            </div>
+        </form>
+        <ul class="divide-y divide-gray-200 px-4">
+
+
+        </ul>
+    </div>
+
+    <script>
+        const socket = io()
+        socket.emit("getTodos")
+        socket.on("todos_updated", (data) => {
+            if(data.status === 'success'){
+                updateTodoList(data.data)
+            } else {
+                alert("Error updating todo list")
+            }
+        })
+
+        function updateTodoList(todos){
+            const ul = document.querySelector('ul')
+            ul.innerHTML = ''
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li')
+                li.className = 'py-4'
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <input id="todo${index}" name="todo${index}" type="checkbox"
+                            class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded" ${todo.status === 'completed' ? 'checked' : ''}>
+                        <label for="todo${index}" class="ml-3 block text-gray-900">
+                            <span class="text-lg font-medium">${todo.task}</span>
+                            <span class="text-sm font-light text-gray-500">Due on ${new Date(todo.deadline).toLocaleDateString()}</span>
+                        </label>
+                    </div>  
+                `
+                ul.insertAdjacentHTML('beforeend', li.innerHTML)
+            })
+        }
+
+        function addTodo(event) {
+            event.preventDefault()
+            const input = event.target.querySelector('input[type="text"]')
+            const task = input.value.trim()
+            if (task) {
+                socket.emit('addTodo', { 
+                    task,
+                    deadline : new Date().toLocaleDateString(),
+                    status : 'pending'
+                 })
+                input.value = ''
+            }
+        }
+        
+    </script>
+</body>
+
+</html>
